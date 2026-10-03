@@ -17,6 +17,7 @@ const SYSTEM =
   'answer is a short reveal (at most 3 lines) shown a few seconds later. Never repeat a card.'
 
 type Settings = { enabled: boolean; generate: boolean; off: string[]; values: Record<string, Record<string, string>> }
+type Stats = { calls: number; cards: number; outputTokens: number; lastError: string }
 type Shown = { card: Card; cat: string; at: number }
 
 const HELP =
@@ -33,6 +34,7 @@ const bufs = new Map<string, Card[]>()
 const seen = new Map<string, string[]>()
 const fallback = new Map<string, Card[]>()
 const generating = new Set<string>()
+let stats: Stats = { calls: 0, cards: 0, outputTokens: 0, lastError: '' }
 
 let turnStart = 0
 let working = false
@@ -107,17 +109,30 @@ async function refill($: any, cat: Category) {
     const prompt =
       fill(cat.prompt, cat.inputs, valuesOf(cat)) +
       `\n\nWrite ${BATCH} cards. ` +
-      (cat.mode === 'delayed' ? 'Every card needs an "answer".' : 'Do not include "answer".')
+      (cat.mode === 'delayed'
+        ? 'About half the cards are questions or recall prompts: give those a real "answer" (never "Correct!" or a restatement). Plain concept or phrase cards have no "answer".'
+        : 'Do not include "answer".')
     const r = await $.model.complete({ model: cat.model, system: SYSTEM, prompt, maxTokens: 2500, effort: 'low', timeoutMs: 60_000 })
-    if (!r.isAnswered || sigOf(cat) !== sig) return // failed, or the inputs changed meanwhile
+    stats.calls += 1
+    if (!r.isAnswered) {
+      stats.lastError = cat.name + ': ' + r.reason
+      await $.store.set('stats', stats)
+      return
+    }
+    stats.outputTokens += r.usage.output_tokens
+    if (sigOf(cat) !== sig) return // the inputs changed meanwhile
     const known = new Set(seen.get(cat.name) ?? [])
     const fresh = parseCards(r.text, cat).filter((c) => !known.has(c.id))
     if (fresh.length === 0) return
     const buf = [...(bufs.get(cat.name) ?? []), ...fresh]
     bufs.set(cat.name, buf)
+    stats.cards += fresh.length
+    stats.lastError = ''
     await $.store.set('buf:' + cat.name, { sig, cards: buf })
-  } catch {
+    await $.store.set('stats', stats)
+  } catch (err) {
     // fall back to the bundled cards
+    stats.lastError = cat.name + ': ' + String(err).slice(0, 80)
   } finally {
     generating.delete(cat.name)
   }
@@ -168,6 +183,8 @@ export const register: Register = (on) => {
         values: s.values && typeof s.values === 'object' ? s.values : {},
       }
     }
+    const st = await $.store.get('stats')
+    if (st && typeof st === 'object') stats = { ...stats, ...(st as Partial<Stats>) }
     await discover($)
     for (const c of cats) {
       const b = (await $.store.get('buf:' + c.name)) as { sig?: string; cards?: Card[] } | undefined
@@ -180,6 +197,8 @@ export const register: Register = (on) => {
       // Redraw once a second, only while something that changes with time is on screen
       $.clock.every(1000, () => {
         if (working || band) $.ui.invalidate('ui.render')
+        // Top buffers up while Claude works, so a long turn never runs dry
+        if (working) refillAll($)
       })
     }
     // Register commands last: a taken name throws
@@ -196,7 +215,10 @@ export const register: Register = (on) => {
     const [head = '', ...rest] = e.args.trim().toLowerCase().split(/\s+/).filter(Boolean)
     const status = () =>
       `sidecard ${settings.enabled ? 'on' : 'off'} · generate ${settings.generate ? 'on (haiku)' : 'off'} · ` +
-      cats.map((c) => (isOn(c.name) ? '✓' : '☐') + ' ' + c.name).join('  ')
+      cats.map((c) => (isOn(c.name) ? '✓' : '☐') + ' ' + c.name).join('  ') +
+      '\nbuffered ' + cats.map((c) => c.name + ' ' + (bufs.get(c.name)?.length ?? 0)).join(', ') +
+      ` · generated ${stats.cards} cards in ${stats.calls} calls (${stats.outputTokens} output tokens)` +
+      (stats.lastError ? ' · last error: ' + stats.lastError : '')
 
     if (head === '' || head === 'menu') {
       await discover($)

@@ -1,5 +1,7 @@
 # sidecard
 
+**English** · [简体中文](README_zhs.md) · [繁體中文](README_zht.md)
+
 A Claude Code **mod** that turns the wait while your agent works into tiny, disposable learning cards. It draws a boxed card under the spinner, and removes it the moment Claude needs you or finishes.
 
 ```
@@ -22,26 +24,10 @@ Cards are either **read-only** or **delayed-answer** (a countdown, then the answ
 
 ## Install
 
-From GitHub :
-
 ```text
 /plugin marketplace add phunterlau/sidecard
 /plugin install sidecard@sidecard
 /reload-plugins
-```
-
-From a local clone:
-
-```text
-/plugin marketplace add /path/to/sidecard
-/plugin install sidecard@sidecard
-/reload-plugins
-```
-
-Try it for one session without installing:
-
-```bash
-claude --plugin-dir /path/to/sidecard
 ```
 
 Confirm it loaded: `/plugin` shows `1 mod active · sidecard`. A mod is code that runs with your permissions; read `hooks/register.ts` first. `claude plugin validate .` lists every event it hooks and every call it makes.
@@ -66,9 +52,9 @@ Defaults: a card appears 8 seconds into a turn, stays 20 seconds (longer for del
 - **Generated**: the mod asks Claude Code's own `haiku` (`$.model.complete`, low effort) for batches of 10 cards in the background, caches them, and avoids repeats. No separate API key is needed, but it **spends your plan or API quota**. Turn it off with `/sidecard generate off`.
 - **Bundled**: 48 offline cards cover `french`, `python-advanced`, `ml-general` and `llm`, used before the first batch arrives or when generation is off.
 
-## Categories
+## Categories and development
 
-Each category is one markdown file. Bundled ones live in `categories/`: `french`, `python-advanced`, `ml-general`, `llm`.
+Cards come from **categories**, and each category is one markdown file. Bundled ones live in `categories/`: `french`, `python-advanced`, `ml-general`, `llm`.
 
 A new category appears automatically when its file shows up in either folder, including one level of subfolders, so you can `git clone` a category pack there:
 
@@ -96,15 +82,23 @@ Each card is a phrase with an example, or a recall prompt with the answer in "an
 - The mod asks the model for a JSON array of `{"body", "answer"?}`; you only write the teaching instructions.
 - A category with no bundled fallback cards needs generation on.
 
-## Development
+### Contributing
+
+Contributions are welcome, especially new categories and better cards:
+
+- **Add a category**: copy a file in `categories/`, change the frontmatter and the teaching prompt, and open a pull request. Good candidates are other languages, SQL, shell, system design, algorithms, math, or your own field.
+- **Add or improve offline cards**: the bundled fallbacks in `hooks/cards.ts` are used before the first generated batch arrives and when generation is off.
+- **Improve the mod**: card layout is in `hooks/draw.ts`, the category parser in `hooks/frontmatter.ts`, and the hooks, commands and menu in `hooks/register.ts`.
+
+Before opening a pull request, run these from a clone of the repo:
 
 ```bash
 claude plugin validate .
 claude plugin test .
-claude --plugin-dir .      # reloads hooks on save
+claude --plugin-dir .      # loads the clone for one session and reloads hooks on save
 ```
 
-Layout: `hooks/register.ts` (hooks, commands, menu), `hooks/draw.ts` (card box), `hooks/frontmatter.ts` (category parser), `hooks/cards.ts` (offline cards), `categories/*.md`.
+Please add a test in `hooks/*.test.ts` for any parser or drawing change.
 
 ## License
 
