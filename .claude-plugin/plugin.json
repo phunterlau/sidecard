@@ -1,0 +1,8 @@
+{
+  "name": "sidecard",
+  "version": "0.2.0",
+  "description": "Tiny disposable learning cards under Claude Code's spinner while it works. Categories are markdown files.",
+  "author": { "name": "phunterlau" },
+  "license": "MIT",
+  "keywords": ["mod", "spinner", "learning", "flashcards"]
+}
