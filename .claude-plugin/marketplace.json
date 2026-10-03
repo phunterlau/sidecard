@@ -1,0 +1,12 @@
+{
+  "name": "sidecard",
+  "description": "Learning cards for the Claude Code wait.",
+  "owner": { "name": "phunterlau" },
+  "plugins": [
+    {
+      "name": "sidecard",
+      "source": "./",
+      "description": "Tiny disposable learning cards under Claude Code's spinner while it works."
+    }
+  ]
+}
