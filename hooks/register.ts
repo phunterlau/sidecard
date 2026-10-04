@@ -2,6 +2,7 @@ import type { Register } from 'claude-code'
 import { cards as staticCards, type Card } from './cards'
 import { drawCard, holdMs } from './draw'
 import { fill, parseCards, parseCategory, type Category } from './frontmatter'
+import { formatReview, parseHistory, pickDue, recent, record, type History } from './memory'
 
 const MIN_WAIT_MS = 8_000
 const GAP_MS = 45_000
@@ -9,21 +10,25 @@ const PANE = 'sidecard-menu'
 const LOW_BUFFER = 3
 const BATCH = 10
 const SEEN_CAP = 80
+// Chance that a card the forgetting curve says is fading replaces the normal pick
+const RESURFACE_CHANCE = 0.3
 
 const SYSTEM =
   'You write tiny flash cards for a developer who is waiting on a coding agent. ' +
-  'Reply with ONLY a JSON array, no prose, no code fences. Each element is {"body": string, "answer"?: string}. ' +
+  'Reply with ONLY a JSON array, no prose, no code fences. Each element is {"body": string, "answer"?: string, "value"?: 2 | 3}. ' +
   'body is at most 5 lines (use \\n), each line at most 52 characters. ' +
-  'answer is a short reveal (at most 3 lines) shown a few seconds later. Never repeat a card.'
+  'answer is a short reveal (at most 3 lines) shown a few seconds later. ' +
+  'value marks the few cards most worth seeing again (about one in four): easy-to-forget gotchas, commonly confused items, high-payoff facts. Omit it otherwise. Never repeat a card.'
 
 type Settings = { enabled: boolean; generate: boolean; off: string[]; values: Record<string, Record<string, string>> }
 type Stats = { calls: number; cards: number; outputTokens: number; lastError: string }
 type Shown = { card: Card; cat: string; at: number }
 
 const HELP =
-  'Usage: /sidecard [menu|on|off|now|status|generate on|off|reload|<category> [key=value]]\n' +
+  'Usage: /sidecard [menu|on|off|now|review [n]|status|generate on|off|reload|<category> [key=value]]\n' +
   '  (no args)    open the category menu\n' +
   '  now          show a card right away\n' +
+  '  review [n]   list the last n cards shown (default 10), with how well you likely remember them\n' +
   '  <category>   toggle it; add key=value to set an input, e.g. french level=B1\n' +
   '  generate     use Claude Code\'s Haiku to write fresh cards (uses your plan quota)\n' +
   '  reload       rescan category files'
@@ -35,6 +40,8 @@ const seen = new Map<string, string[]>()
 const fallback = new Map<string, Card[]>()
 const generating = new Set<string>()
 let stats: Stats = { calls: 0, cards: 0, outputTokens: 0, lastError: '' }
+// Every card ever shown and when: the review list and the forgetting curve both read it
+let history: History = {}
 
 let turnStart = 0
 let working = false
@@ -147,6 +154,18 @@ function remember($: any, s: Shown) {
   const list = [...(seen.get(s.cat) ?? []), s.card.id].slice(-SEEN_CAP)
   seen.set(s.cat, list)
   void $.store.set('seen:' + s.cat, list)
+  history = record(history, s.card, s.at)
+  void $.store.set('history', history)
+}
+
+// Re-read so sessions running side by side converge on one history
+async function loadHistory($: any) {
+  history = parseHistory(await $.store.get('history'))
+}
+
+// A high-value card that is fading from memory, from a category that is still on
+function pickFading(now: number): Card | null {
+  return pickDue(history, now, (name) => isOn(name) && cats.some((c) => c.name === name))
 }
 
 async function showNow($: any): Promise<boolean> {
@@ -186,6 +205,7 @@ export const register: Register = (on) => {
     const st = await $.store.get('stats')
     if (st && typeof st === 'object') stats = { ...stats, ...(st as Partial<Stats>) }
     await discover($)
+    await loadHistory($)
     for (const c of cats) {
       const b = (await $.store.get('buf:' + c.name)) as { sig?: string; cards?: Card[] } | undefined
       if (b?.sig === sigOf(c) && Array.isArray(b.cards)) bufs.set(c.name, b.cards)
@@ -204,8 +224,8 @@ export const register: Register = (on) => {
     // Register commands last: a taken name throws
     await $.command.register({
       name: 'sidecard',
-      description: 'Spinner learning cards: menu, on/off, now',
-      argumentHint: '[menu|on|off|now|<category>]',
+      description: 'Spinner learning cards: menu, on/off, now, review',
+      argumentHint: '[menu|on|off|now|review [n]|<category>]',
       immediate: true,
     })
     return next(e)
@@ -244,6 +264,13 @@ export const register: Register = (on) => {
       if (settings.generate) refillAll($)
       return { text: status() }
     }
+    if (head === 'review') {
+      const n = rest[0] === undefined ? 10 : Number(rest[0])
+      if (!Number.isInteger(n) || n < 1) return { text: 'Usage: /sidecard review [n]   (n = how many recent cards, default 10)' }
+      await loadHistory($)
+      const now = await $.clock.now()
+      return { text: formatReview(recent(history, n, now), now) }
+    }
     if (head === 'now') {
       return (await showNow($)) ? {} : { text: 'No cards available. Enable a category with /sidecard.' }
     }
@@ -275,6 +302,7 @@ export const register: Register = (on) => {
     held = false
     current = band = null
     refillAll($)
+    void loadHistory($)
     return next(e)
   })
 
@@ -316,7 +344,8 @@ export const register: Register = (on) => {
       lastShownEnd = now
     }
     if (!current && now - turnStart >= MIN_WAIT_MS && now - lastShownEnd >= GAP_MS) {
-      const p = pick()
+      const fading = Math.random() < RESURFACE_CHANCE ? pickFading(now) : null
+      const p = fading ? { card: fading, cat: { name: fading.category } } : pick()
       if (p) {
         current = { card: p.card, cat: p.cat.name, at: now }
         remember($, current)

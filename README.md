@@ -38,6 +38,7 @@ Confirm it loaded: `/plugin` shows `1 mod active · sidecard`. A mod is code tha
 | --- | --- |
 | `/sidecard` or `/sidecard menu` | Category menu: `✓`/`☐` toggles (hotkeys 1–9) and a dropdown for each category's inputs |
 | `/sidecard now` | Show a card right away (in the spinner during a turn, above the prompt when idle) |
+| `/sidecard review [n]` | List the last `n` cards shown (default 10), newest first, with answers and how well you likely remember each |
 | `/sidecard on` / `off` | Enable or disable all cards |
 | `/sidecard <category>` | Toggle a category, e.g. `/sidecard french` |
 | `/sidecard <category> key=value` | Set an input, e.g. `/sidecard french level=B1` |
@@ -46,6 +47,18 @@ Confirm it loaded: `/plugin` shows `1 mod active · sidecard`. A mod is code tha
 | `/sidecard status` | Show current settings |
 
 Defaults: a card appears 8 seconds into a turn, stays 20 seconds (longer for delayed answers), with at least 45 seconds between cards. It disappears when the turn ends or when Claude asks for permission or input. Settings persist across sessions.
+
+### Review and the forgetting curve
+
+Every card shown is remembered, with when, across sessions. `/sidecard review` lists the most recent ones, so a card you only half-read is not lost:
+
+```text
+2. french · 2d ago · seen 2× · memory 50%
+   manquer à
+   to be missed by
+```
+
+Cards marked **high value** (bundled gotchas and recall prompts; Haiku rates a few of the generated ones) can come back. The estimated memory of a card is `exp(-time since last shown / stability)`, where stability starts at one day and grows each time the card is shown again, more when the repeat comes just as it was fading and hardly at all when it comes straight away. Once a high-value card drops below 50%, a card slot has a 30% chance of being that card instead of a new one. Low-value cards never come back, and nothing needs an answer: it is time-based only.
 
 ### Where cards come from
 
@@ -88,7 +101,7 @@ Contributions are welcome, especially new categories and better cards:
 
 - **Add a category**: copy a file in `categories/`, change the frontmatter and the teaching prompt, and open a pull request. Good candidates are other languages, SQL, shell, system design, algorithms, math, or your own field.
 - **Add or improve offline cards**: the bundled fallbacks in `hooks/cards.ts` are used before the first generated batch arrives and when generation is off.
-- **Improve the mod**: card layout is in `hooks/draw.ts`, the category parser in `hooks/frontmatter.ts`, and the hooks, commands and menu in `hooks/register.ts`.
+- **Improve the mod**: card layout is in `hooks/draw.ts`, the category parser in `hooks/frontmatter.ts`, history and the forgetting curve in `hooks/memory.ts`, and the hooks, commands and menu in `hooks/register.ts`.
 
 Before opening a pull request, run these from a clone of the repo:
 

@@ -38,6 +38,7 @@
 | --- | --- |
 | `/sidecard` 或 `/sidecard menu` | 分类菜单：`✓`/`☐` 开关（快捷键 1–9），以及每个分类的参数下拉框 |
 | `/sidecard now` | 立即显示一张卡片（回合进行中显示在 spinner 下方，空闲时显示在输入框上方） |
+| `/sidecard review [n]` | 列出最近显示的 `n` 张卡片（默认 10），最新的在前，附带答案和你大概还记得多少 |
 | `/sidecard on` / `off` | 启用或关闭所有卡片 |
 | `/sidecard <category>` | 开关某个分类，例如 `/sidecard french` |
 | `/sidecard <category> key=value` | 设置某个参数，例如 `/sidecard french level=B1` |
@@ -46,6 +47,18 @@
 | `/sidecard status` | 查看当前设置 |
 
 默认行为：回合开始 8 秒后出现卡片，停留 20 秒（有延迟答案的卡片更久），两张卡片之间至少间隔 45 秒。回合结束，或 Claude 请求权限或输入时，卡片消失。设置会跨会话保存。
+
+### 回顾与遗忘曲线
+
+每张显示过的卡片都会连同时间一起跨会话保存。`/sidecard review` 列出最近的几张，没看完的卡片也不会丢：
+
+```text
+2. french · 2d ago · seen 2× · memory 50%
+   manquer à
+   to be missed by
+```
+
+标记为**高价值**的卡片（内置的易错点和回忆题；生成的卡片中有少数由 Haiku 评定）可能再次出现。卡片的估计记忆度为 `exp(-距上次显示的时间 / 稳定度)`，稳定度起始为一天，每次重新显示后增长：在快要忘记时重复增长最多，刚看过就重复几乎不增长。高价值卡片的记忆度降到 50% 以下后，出现新卡片的时机有 30% 的概率改为展示这张。低价值卡片不会再出现，也不需要你作答：只依据时间。
 
 ### 卡片从哪里来
 
@@ -88,7 +101,7 @@ Each card is a phrase with an example, or a recall prompt with the answer in "an
 
 - **新增分类**：复制 `categories/` 里的一个文件，修改 frontmatter 和教学提示词，然后提交 Pull Request。适合的方向有其他语言、SQL、Shell、系统设计、算法、数学，或你自己的专业领域。
 - **新增或改进离线卡片**：`hooks/cards.ts` 中的内置卡片会在第一批生成卡片到达前以及关闭生成时使用。
-- **改进模组本身**：卡片排版在 `hooks/draw.ts`，分类解析在 `hooks/frontmatter.ts`，钩子、命令和菜单在 `hooks/register.ts`。
+- **改进模组本身**：卡片排版在 `hooks/draw.ts`，分类解析在 `hooks/frontmatter.ts`，历史记录与遗忘曲线在 `hooks/memory.ts`，钩子、命令和菜单在 `hooks/register.ts`。
 
 提交 Pull Request 前，请在仓库克隆目录中运行：
 

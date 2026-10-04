@@ -75,13 +75,14 @@ export function parseCards(text: string, cat: Pick<Category, 'name' | 'mode' | '
   const out: Card[] = []
   for (const r of raw) {
     if (!r || typeof r !== 'object') continue
-    const { body, answer } = r as { body?: unknown; answer?: unknown }
+    const { body, answer, value } = r as { body?: unknown; answer?: unknown; value?: unknown }
     if (typeof body !== 'string' || body.length < 3 || body.length > 500) continue
     const reveal =
       cat.mode === 'delayed' && typeof answer === 'string' && answer.trim() && answer.length <= 400
         ? { afterSeconds: cat.revealAfter, body: answer.trim() }
         : undefined
-    out.push({ id: 'gen-' + hash(cat.name + body), category: cat.name, body: body.trim(), ...(reveal ? { reveal } : {}) })
+    const v = value === 2 || value === 3 ? value : 1
+    out.push({ id: 'gen-' + hash(cat.name + body), category: cat.name, ...(v > 1 ? { value: v } : {}), body: body.trim(), ...(reveal ? { reveal } : {}) })
   }
   return out
 }

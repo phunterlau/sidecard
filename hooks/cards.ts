@@ -1,5 +1,5 @@
 // Offline fallback cards, used when generation is off or a category has no buffered cards yet.
-export type Card = { id: string; category: string; body: string; reveal?: { afterSeconds: number; body: string } }
+export type Card = { id: string; category: string; value?: number; body: string; reveal?: { afterSeconds: number; body: string } }
 export const cards: Card[] = [
  {
   "id": "french-pourtant",
@@ -39,6 +39,7 @@ export const cards: Card[] = [
  {
   "id": "french-recall-habitue",
   "category": "french",
+  "value": 2,
   "body": "How would you say:\n“I am used to it.”\n\nThink for a moment…",
   "reveal": {
    "afterSeconds": 6,
@@ -73,11 +74,13 @@ export const cards: Card[] = [
  {
   "id": "french-manquer",
   "category": "french",
+  "value": 2,
   "body": "manquer à\nto be missed by\n\nTu me manques.\nI miss you. (You are missing to me.)"
  },
  {
   "id": "french-recall-retard",
   "category": "french",
+  "value": 2,
   "body": "How would you say:\n“I'm running late.”\n\nThink for a moment…",
   "reveal": {
    "afterSeconds": 6,
@@ -87,6 +90,7 @@ export const cards: Card[] = [
  {
   "id": "french-depuis",
   "category": "french",
+  "value": 2,
   "body": "depuis + present\nfor / since (still true)\n\nJ'habite ici depuis deux ans.\nI've lived here for two years."
  },
  {
@@ -97,6 +101,7 @@ export const cards: Card[] = [
  {
   "id": "french-faillir",
   "category": "french",
+  "value": 2,
   "body": "faillir + infinitive\nto almost do\n\nJ'ai failli tomber.\nI almost fell."
  },
  {
@@ -112,6 +117,7 @@ export const cards: Card[] = [
  {
   "id": "py-shared-list",
   "category": "python-advanced",
+  "value": 2,
   "body": "x = [[]] * 3\nx[0].append(1)\n\nWhat is x?\nThink for a moment…",
   "reveal": {
    "afterSeconds": 6,
@@ -121,6 +127,7 @@ export const cards: Card[] = [
  {
   "id": "py-default-arg",
   "category": "python-advanced",
+  "value": 2,
   "body": "def f(a, b=[]):\n    b.append(a)\n    return b\n\nf(1); f(2) returns?\nThink for a moment…",
   "reveal": {
    "afterSeconds": 6,
@@ -130,6 +137,7 @@ export const cards: Card[] = [
  {
   "id": "py-late-binding",
   "category": "python-advanced",
+  "value": 2,
   "body": "fs = [lambda: i for i in range(3)]\n[f() for f in fs]\n\nThink for a moment…",
   "reveal": {
    "afterSeconds": 6,
@@ -187,6 +195,7 @@ export const cards: Card[] = [
  {
   "id": "pt-keepdim",
   "category": "ml-general",
+  "value": 2,
   "body": "x = torch.randn(32, 128)\nx.sum(dim=1, keepdim=True).shape\n\nThink for a moment…",
   "reveal": {
    "afterSeconds": 6,
@@ -215,6 +224,7 @@ export const cards: Card[] = [
  {
   "id": "pt-view-vs-reshape",
   "category": "ml-general",
+  "value": 2,
   "body": "view() needs compatible strides and shares storage.\nreshape() copies only if it must.\n\nAfter transpose(), prefer reshape()\nor call .contiguous() first."
  },
  {
@@ -235,6 +245,7 @@ export const cards: Card[] = [
  {
   "id": "pt-eval-mode",
   "category": "ml-general",
+  "value": 2,
   "body": "model.eval()\n\nSwitches dropout and batch norm to inference behavior.\nIt does NOT disable gradients — pair with no_grad()."
  },
  {
@@ -265,6 +276,7 @@ export const cards: Card[] = [
  {
   "id": "llm-recall-hallu",
   "category": "llm",
+  "value": 2,
   "body": "Why do LLMs hallucinate?\n\nThink for a moment…",
   "reveal": {
    "afterSeconds": 6,
