@@ -63,7 +63,40 @@ Cards marked **high value** (bundled gotchas and recall prompts; Haiku rates a f
 ### Where cards come from
 
 - **Generated**: the mod asks Claude Code's own `haiku` (`$.model.complete`, low effort) for batches of 10 cards in the background, caches them, and avoids repeats. No separate API key is needed, but it **spends your plan or API quota**. Turn it off with `/sidecard generate off`.
-- **Bundled**: 48 offline cards cover `french`, `python-advanced`, `ml-general` and `llm`, used before the first batch arrives or when generation is off.
+- **Bundled**: 58 offline cards cover `french`, `python-advanced`, `ml-general` and `llm`, used before the first batch arrives or when generation is off.
+
+### Example cards
+
+Three of the bundled cards, as they look under the spinner: a delayed-answer card after its answer arrives, one mid-countdown, and a read-only card.
+
+```text
+╭─ sidecard · python-advanced ────────────────────────╮
+│ class A: ...                                        │
+│ class B(A): ...   class C(A): ...                   │
+│ class D(B, C): ...                                  │
+│                                                     │
+│ D.__mro__ order?                                    │
+│ Think for a moment…                                 │
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┤
+│ D, B, C, A, object                                  │
+│ C3: a class precedes its bases; base order is kept. │
+╰─────────────────────────────────────────────────────╯
+
+╭─ sidecard · llm ──────────────╮
+│ Why is FlashAttention faster? │
+│                               │
+│ Think for a moment…           │
+│ ┄ answer in 3s ▰▰▰▱▱▱         │
+╰───────────────────────────────╯
+
+╭─ sidecard · llm ──────────────────────────────╮
+│ Grouped-query attention                       │
+│ Several query heads share one key/value head: │
+│ smaller KV cache, faster decoding.            │
+╰───────────────────────────────────────────────╯
+```
+
+The `python-advanced` set covers method resolution order, mutable dataclass defaults, `@contextmanager` cleanup, `Protocol` and the GIL, next to the classic gotchas (shared lists, mutable default arguments, late-binding closures). The `llm` set covers sampling (temperature, top-p), attention cost, FlashAttention, grouped-query attention, the KV cache, LoRA, RAG and DPO.
 
 ## Categories and development
 

@@ -63,7 +63,40 @@
 ### 卡片从哪里来
 
 - **生成**：模组在后台调用 Claude Code 自带的 `haiku`（`$.model.complete`，低推理强度），每批生成 10 张卡片，缓存并避免重复。无需单独的 API 密钥，但会**消耗你的套餐或 API 额度**。可用 `/sidecard generate off` 关闭。
-- **内置**：48 张离线卡片，覆盖 `french`、`python-advanced`、`ml-general` 和 `llm`，在第一批生成卡片到达前或关闭生成时使用。
+- **内置**：58 张离线卡片，覆盖 `french`、`python-advanced`、`ml-general` 和 `llm`，在第一批生成卡片到达前或关闭生成时使用。
+
+### 卡片示例
+
+下面是三张内置卡片在 spinner 下方的样子：答案已出现的延迟答案卡片、倒计时中的卡片，以及只读卡片。
+
+```text
+╭─ sidecard · python-advanced ────────────────────────╮
+│ class A: ...                                        │
+│ class B(A): ...   class C(A): ...                   │
+│ class D(B, C): ...                                  │
+│                                                     │
+│ D.__mro__ order?                                    │
+│ Think for a moment…                                 │
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┤
+│ D, B, C, A, object                                  │
+│ C3: a class precedes its bases; base order is kept. │
+╰─────────────────────────────────────────────────────╯
+
+╭─ sidecard · llm ──────────────╮
+│ Why is FlashAttention faster? │
+│                               │
+│ Think for a moment…           │
+│ ┄ answer in 3s ▰▰▰▱▱▱         │
+╰───────────────────────────────╯
+
+╭─ sidecard · llm ──────────────────────────────╮
+│ Grouped-query attention                       │
+│ Several query heads share one key/value head: │
+│ smaller KV cache, faster decoding.            │
+╰───────────────────────────────────────────────╯
+```
+
+`python-advanced` 的进阶卡片涵盖方法解析顺序（MRO）、dataclass 的可变默认值、`@contextmanager` 的清理、`Protocol` 与 GIL，另有经典易错点（共享列表、可变默认参数、闭包的延迟绑定）。`llm` 的卡片涵盖采样（temperature、top-p）、注意力的计算开销、FlashAttention、分组查询注意力、KV cache、LoRA、RAG 与 DPO。
 
 ## 分类与开发
 

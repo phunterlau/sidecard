@@ -184,6 +184,41 @@ export const cards: Card[] = [
   "body": "@functools.cache\ndef fib(n): ...\n\nMemoizes by arguments (must be hashable)."
  },
  {
+  "id": "py-mro",
+  "category": "python-advanced",
+  "value": 2,
+  "body": "class A: ...\nclass B(A): ...   class C(A): ...\nclass D(B, C): ...\n\nD.__mro__ order?\nThink for a moment…",
+  "reveal": {
+   "afterSeconds": 6,
+   "body": "D, B, C, A, object\nC3: a class precedes its bases; base order is kept."
+  }
+ },
+ {
+  "id": "py-dataclass-mutable",
+  "category": "python-advanced",
+  "value": 2,
+  "body": "@dataclass\nclass C:\n    xs: list = []\n\nWhat happens?\nThink for a moment…",
+  "reveal": {
+   "afterSeconds": 6,
+   "body": "ValueError at class creation.\nUse field(default_factory=list)."
+  }
+ },
+ {
+  "id": "py-contextmanager",
+  "category": "python-advanced",
+  "body": "@contextmanager\ndef cd(p):\n    old = os.getcwd(); os.chdir(p)\n    try: yield\n    finally: os.chdir(old)\n\nWithout try/finally, cleanup is skipped on error."
+ },
+ {
+  "id": "py-protocol",
+  "category": "python-advanced",
+  "body": "class Closer(Protocol):\n    def close(self) -> None: ...\n\nStructural typing: any object with close()\nmatches. No inheritance needed."
+ },
+ {
+  "id": "py-gil",
+  "category": "python-advanced",
+  "body": "The GIL lets one thread run Python bytecode\nat a time.\n\nThreads help I/O-bound work; use processes\nfor CPU-bound work."
+ },
+ {
   "id": "pt-mean-shape",
   "category": "ml-general",
   "body": "x = torch.randn(32, 128)\nx.mean(dim=1).shape\n\nThink for a moment…",
@@ -296,5 +331,40 @@ export const cards: Card[] = [
    "afterSeconds": 6,
    "body": "A weighted mix of value vectors; weights come from query·key similarity."
   }
+ },
+ {
+  "id": "llm-top-p",
+  "category": "llm",
+  "body": "Top-p (nucleus) sampling\nKeep the smallest set of tokens whose\nprobabilities sum to p, then sample from it."
+ },
+ {
+  "id": "llm-recall-flash",
+  "category": "llm",
+  "value": 2,
+  "body": "Why is FlashAttention faster?\n\nThink for a moment…",
+  "reveal": {
+   "afterSeconds": 6,
+   "body": "Same math, less memory traffic: it tiles the work so the n×n score matrix never hits GPU HBM."
+  }
+ },
+ {
+  "id": "llm-recall-quadratic",
+  "category": "llm",
+  "value": 2,
+  "body": "Why does attention cost grow quadratically\nwith context length?\n\nThink for a moment…",
+  "reveal": {
+   "afterSeconds": 6,
+   "body": "Every token attends to every other: an n×n score matrix, so compute grows as n²."
+  }
+ },
+ {
+  "id": "llm-gqa",
+  "category": "llm",
+  "body": "Grouped-query attention\nSeveral query heads share one key/value head:\nsmaller KV cache, faster decoding."
+ },
+ {
+  "id": "llm-dpo",
+  "category": "llm",
+  "body": "DPO\nTrains on preference pairs (chosen vs rejected)\nwith a classification-style loss: no separate\nreward model, no RL loop."
  }
 ]
