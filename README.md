@@ -43,10 +43,11 @@ Confirm it loaded: `/plugin` shows `1 mod active · sidecard`. A mod is code tha
 | `/sidecard <category>` | Toggle a category, e.g. `/sidecard french` |
 | `/sidecard <category> key=value` | Set an input, e.g. `/sidecard french level=B1` |
 | `/sidecard generate on\|off` | Fresh cards from Claude Code's Haiku, on or off |
+| `/sidecard wait <seconds>` | Seconds into a turn before the first card (0–60), also in the menu |
 | `/sidecard reload` | Rescan category files |
 | `/sidecard status` | Show current settings |
 
-Defaults: a card appears 8 seconds into a turn, stays 20 seconds (longer for delayed answers), with at least 45 seconds between cards. It disappears when the turn ends or when Claude asks for permission or input. Settings persist across sessions.
+Defaults: a card appears 2.5 seconds into a turn (change it with `/sidecard wait`), stays 20 seconds (longer for delayed answers), with at least 45 seconds between cards. It disappears when the turn ends or when Claude asks for permission or input. Settings persist across sessions.
 
 ### Review and the forgetting curve
 

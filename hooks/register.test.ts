@@ -60,3 +60,13 @@ test('/sidecard review with no history says there are no cards yet', async ($, o
   mock.env(on, { HOME: '/nonexistent' })
   expect(await review($, 'review')).toContain('No cards yet')
 })
+
+test('/sidecard wait sets the first-card wait; bad values give the usage', async ($, on) => {
+  mock.store(on, {})
+  expect(await review($, 'wait 5')).toContain('wait 5s')
+  expect(await review($, 'status')).toContain('wait 5s')
+  expect(await review($, 'wait abc')).toContain('Usage: /sidecard wait')
+  expect(await review($, 'wait 99')).toContain('now 5')
+  expect(await review($, 'wait')).toContain('Usage: /sidecard wait')
+  await review($, 'wait 2.5')
+})

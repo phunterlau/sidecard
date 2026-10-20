@@ -4,7 +4,6 @@ import { drawCard, holdMs } from './draw'
 import { fill, parseCards, parseCategory, type Category } from './frontmatter'
 import { formatReview, parseHistory, pickDue, recent, record, type History } from './memory'
 
-const MIN_WAIT_MS = 8_000
 const GAP_MS = 45_000
 const PANE = 'sidecard-menu'
 const LOW_BUFFER = 3
@@ -20,20 +19,21 @@ const SYSTEM =
   'answer is a short reveal (at most 3 lines) shown a few seconds later. ' +
   'value marks the few cards most worth seeing again (about one in four): easy-to-forget gotchas, commonly confused items, high-payoff facts. Omit it otherwise. Never repeat a card.'
 
-type Settings = { enabled: boolean; generate: boolean; off: string[]; values: Record<string, Record<string, string>> }
+type Settings = { enabled: boolean; generate: boolean; wait: number; off: string[]; values: Record<string, Record<string, string>> }
 type Stats = { calls: number; cards: number; outputTokens: number; lastError: string }
 type Shown = { card: Card; cat: string; at: number }
 
 const HELP =
-  'Usage: /sidecard [menu|on|off|now|review [n]|status|generate on|off|reload|<category> [key=value]]\n' +
+  'Usage: /sidecard [menu|on|off|now|review [n]|status|generate on|off|wait <seconds>|reload|<category> [key=value]]\n' +
   '  (no args)    open the category menu\n' +
   '  now          show a card right away\n' +
   '  review [n]   list the last n cards shown (default 10), with how well you likely remember them\n' +
   '  <category>   toggle it; add key=value to set an input, e.g. french level=B1\n' +
   '  generate     use Claude Code\'s Haiku to write fresh cards (uses your plan quota)\n' +
+  '  wait <s>     seconds into a turn before the first card (0–60, default 2.5)\n' +
   '  reload       rescan category files'
 
-let settings: Settings = { enabled: true, generate: true, off: [], values: {} }
+let settings: Settings = { enabled: true, generate: true, wait: 2.5, off: [], values: {} }
 let cats: Category[] = []
 const bufs = new Map<string, Card[]>()
 const seen = new Map<string, string[]>()
@@ -198,6 +198,7 @@ export const register: Register = (on) => {
       settings = {
         enabled: s.enabled !== false,
         generate: s.generate !== false,
+        wait: typeof s.wait === 'number' && Number.isFinite(s.wait) && s.wait >= 0 ? s.wait : 2.5,
         off: Array.isArray(s.off) ? s.off : [],
         values: s.values && typeof s.values === 'object' ? s.values : {},
       }
@@ -225,7 +226,7 @@ export const register: Register = (on) => {
     await $.command.register({
       name: 'sidecard',
       description: 'Spinner learning cards: menu, on/off, now, review',
-      argumentHint: '[menu|on|off|now|review [n]|<category>]',
+      argumentHint: '[menu|on|off|now|review [n]|wait <seconds>|<category>]',
       immediate: true,
     })
     return next(e)
@@ -234,7 +235,7 @@ export const register: Register = (on) => {
   on('command.run', { command: 'sidecard' }, async ($, e) => {
     const [head = '', ...rest] = e.args.trim().toLowerCase().split(/\s+/).filter(Boolean)
     const status = () =>
-      `sidecard ${settings.enabled ? 'on' : 'off'} · generate ${settings.generate ? 'on (haiku)' : 'off'} · ` +
+      `sidecard ${settings.enabled ? 'on' : 'off'} · generate ${settings.generate ? 'on (haiku)' : 'off'} · wait ${settings.wait}s · ` +
       cats.map((c) => (isOn(c.name) ? '✓' : '☐') + ' ' + c.name).join('  ') +
       '\nbuffered ' + cats.map((c) => c.name + ' ' + (bufs.get(c.name)?.length ?? 0)).join(', ') +
       ` · generated ${stats.cards} cards in ${stats.calls} calls (${stats.outputTokens} output tokens)` +
@@ -262,6 +263,13 @@ export const register: Register = (on) => {
       settings.generate = rest[0] !== 'off'
       await save($)
       if (settings.generate) refillAll($)
+      return { text: status() }
+    }
+    if (head === 'wait') {
+      const s = rest[0] === undefined ? NaN : Number(rest[0])
+      if (!(s >= 0 && s <= 60)) return { text: `Usage: /sidecard wait <seconds>   (0–60, now ${settings.wait})` }
+      settings.wait = s
+      await save($)
       return { text: status() }
     }
     if (head === 'review') {
@@ -343,7 +351,7 @@ export const register: Register = (on) => {
       current = null
       lastShownEnd = now
     }
-    if (!current && now - turnStart >= MIN_WAIT_MS && now - lastShownEnd >= GAP_MS) {
+    if (!current && now - turnStart >= settings.wait * 1000 && now - lastShownEnd >= GAP_MS) {
       const fading = Math.random() < RESURFACE_CHANCE ? pickFading(now) : null
       const p = fading ? { card: fading, cat: { name: fading.category } } : pick()
       if (p) {
@@ -455,6 +463,17 @@ export const register: Register = (on) => {
                 redraw()
                 await save($)
                 if (settings.generate) refillAll($)
+              },
+            }),
+            Select({
+              key: 'wait',
+              label: 'first card after',
+              options: [...new Set([0, 1, 2.5, 5, 8, 15, settings.wait])].sort((a, b) => a - b).map((s) => ({ value: String(s), label: s + 's' })),
+              value: String(settings.wait),
+              onSelect: async (v: string) => {
+                settings.wait = Number(v)
+                redraw()
+                await save($)
               },
             }),
             Button({
