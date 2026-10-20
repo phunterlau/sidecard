@@ -3,7 +3,7 @@ import { cards } from './cards'
 
 test('bundled card ids are unique and belong to a bundled category', async () => {
   expect(new Set(cards.map((c) => c.id)).size).toBe(cards.length)
-  const cats = new Set(['french', 'python-advanced', 'ml-general', 'llm'])
+  const cats = new Set(['french', 'python-advanced', 'ml-general', 'llm', 'probability'])
   for (const c of cards) expect(cats.has(c.category)).toBe(true)
 })
 

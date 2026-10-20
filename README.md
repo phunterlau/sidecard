@@ -63,7 +63,7 @@ Cards marked **high value** (bundled gotchas and recall prompts; Haiku rates a f
 ### Where cards come from
 
 - **Generated**: the mod asks Claude Code's own `haiku` (`$.model.complete`, low effort) for batches of 10 cards in the background, caches them, and avoids repeats. No separate API key is needed, but it **spends your plan or API quota**. Turn it off with `/sidecard generate off`.
-- **Bundled**: 58 offline cards cover `french`, `python-advanced`, `ml-general` and `llm`, used before the first batch arrives or when generation is off.
+- **Bundled**: 75 offline cards cover `french`, `python-advanced`, `ml-general`, `llm` and `probability`, used before the first batch arrives or when generation is off.
 
 ### Example cards
 
@@ -96,11 +96,11 @@ Three of the bundled cards, as they look under the spinner: a delayed-answer car
 ╰───────────────────────────────────────────────╯
 ```
 
-The `python-advanced` set covers method resolution order, mutable dataclass defaults, `@contextmanager` cleanup, `Protocol` and the GIL, next to the classic gotchas (shared lists, mutable default arguments, late-binding closures). The `llm` set covers sampling (temperature, top-p), attention cost, FlashAttention, grouped-query attention, the KV cache, LoRA, RAG and DPO.
+The `python-advanced` set covers method resolution order, mutable dataclass defaults, `@contextmanager` cleanup, `Protocol` and the GIL, next to the classic gotchas (shared lists, mutable default arguments, late-binding closures). The `llm` set covers sampling (temperature, top-p), attention cost, FlashAttention, grouped-query attention, the KV cache, LoRA, RAG and DPO. The `probability` set, drawn from the topics of Stanford CS229's probability review, Harvard Stat 110 and Seeing Theory, covers Bayes and base rates, linearity of expectation, LOTUS, Adam's and Eve's laws, memorylessness, the LLN and CLT, and the birthday and Monty Hall puzzles.
 
 ## Categories and development
 
-Cards come from **categories**, and each category is one markdown file. Bundled ones live in `categories/`: `french`, `python-advanced`, `ml-general`, `llm`.
+Cards come from **categories**, and each category is one markdown file. Bundled ones live in `categories/`: `french`, `python-advanced`, `ml-general`, `llm`, `probability`.
 
 A new category appears automatically when its file shows up in either folder, including one level of subfolders, so you can `git clone` a category pack there:
 

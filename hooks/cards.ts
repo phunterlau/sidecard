@@ -366,5 +366,114 @@ export const cards: Card[] = [
   "id": "llm-dpo",
   "category": "llm",
   "body": "DPO\nTrains on preference pairs (chosen vs rejected)\nwith a classification-style loss: no separate\nreward model, no RL loop."
+ },
+ {
+  "id": "probability-bayes",
+  "category": "probability",
+  "body": "Bayes' rule\nP(A|B) = P(B|A) P(A) / P(B)\nFlips a conditional; the prior P(A) still matters."
+ },
+ {
+  "id": "probability-recall-base-rate",
+  "category": "probability",
+  "value": 2,
+  "body": "A test is 99% sensitive and 99% specific.\n1 in 1,000 people has the disease.\nYou test positive. Roughly how likely\nis it that you have it?\n\nThink for a moment…",
+  "reveal": {
+   "afterSeconds": 8,
+   "body": "About 9%. Per 1,000 people: ~1 true positive,\n~10 false positives."
+  }
+ },
+ {
+  "id": "probability-linearity",
+  "category": "probability",
+  "body": "Linearity of expectation\nE[X + Y] = E[X] + E[Y], even when X and Y\nare dependent. No independence needed."
+ },
+ {
+  "id": "probability-recall-hats",
+  "category": "probability",
+  "body": "n people take hats at random.\nExpected number who get their own hat?\n\nThink for a moment…",
+  "reveal": {
+   "afterSeconds": 8,
+   "body": "1. Each person matches with probability 1/n;\nadd n indicators by linearity."
+  }
+ },
+ {
+  "id": "probability-uncorrelated",
+  "category": "probability",
+  "value": 2,
+  "body": "Uncorrelated ≠ independent\nX ~ Uniform(-1, 1), Y = X²: Cov(X, Y) = 0,\nyet Y is a function of X."
+ },
+ {
+  "id": "probability-variance",
+  "category": "probability",
+  "body": "Var(X) = E[X²] − (E[X])²\nVar(aX + b) = a² Var(X)\nVar(X + Y) = Var(X) + Var(Y) + 2 Cov(X, Y)"
+ },
+ {
+  "id": "probability-recall-geometric",
+  "category": "probability",
+  "body": "You roll a fair die until you see a 6.\nExpected number of rolls?\n\nThink for a moment…",
+  "reveal": {
+   "afterSeconds": 8,
+   "body": "6. Rolls until the first success are Geometric\nwith p = 1/6, and the mean is 1/p."
+  }
+ },
+ {
+  "id": "probability-memoryless",
+  "category": "probability",
+  "body": "Memorylessness\nExponential: P(T > s + t | T > s) = P(T > t).\nA bulb that has lasted 100 hours is as good as new.\nThe Geometric is the discrete version."
+ },
+ {
+  "id": "probability-poisson",
+  "category": "probability",
+  "body": "Poisson(λ)\nCounts of rare events in a fixed window:\nemails per hour, typos per page.\nMean = variance = λ."
+ },
+ {
+  "id": "probability-recall-birthday",
+  "category": "probability",
+  "body": "How many people do you need for a better\nthan 50% chance that two share a birthday?\n\nThink for a moment…",
+  "reveal": {
+   "afterSeconds": 8,
+   "body": "23 (exactly 50.7%). It feels low, but 23 people\nform 253 pairs, and any one pair can match."
+  }
+ },
+ {
+  "id": "probability-recall-monty-hall",
+  "category": "probability",
+  "value": 2,
+  "body": "Monty Hall: you pick door 1. The host knows\nwhere the car is and always opens a goat door\nyou did not pick. Door 3 opens: a goat.\nShould you switch?\n\nThink for a moment…",
+  "reveal": {
+   "afterSeconds": 8,
+   "body": "Yes: switching wins 2/3. Your pick is right 1/3\nof the time, and the host's rule never changes that."
+  }
+ },
+ {
+  "id": "probability-lotus",
+  "category": "probability",
+  "body": "LOTUS\nE[g(X)] = Σ g(x) P(X = x), or ∫ g(x) f(x) dx.\nNo need to find the distribution of g(X) first."
+ },
+ {
+  "id": "probability-adam-eve",
+  "category": "probability",
+  "body": "Adam's law: E[Y] = E[E[Y|X]]\nEve's law: Var(Y) = E[Var(Y|X)] + Var(E[Y|X])\nTotal variance = within groups + between groups."
+ },
+ {
+  "id": "probability-clt",
+  "category": "probability",
+  "body": "Central limit theorem\nThe mean of n i.i.d. draws (finite variance σ²)\nis roughly Normal(μ, σ²/n) for large n,\nwhatever the shape of the original distribution."
+ },
+ {
+  "id": "probability-lln",
+  "category": "probability",
+  "value": 2,
+  "body": "Law of large numbers\nThe sample mean converges to the true mean.\nIt does not \"balance out\" streaks: after 10 heads,\nthe next fair flip is still 50/50."
+ },
+ {
+  "id": "probability-jensen",
+  "category": "probability",
+  "body": "Jensen's inequality\nFor convex g: E[g(X)] ≥ g(E[X]).\nSo E[X²] ≥ (E[X])², which is why Var(X) ≥ 0."
+ },
+ {
+  "id": "probability-normal-rule",
+  "category": "probability",
+  "body": "Normal 68–95–99.7 rule\nWithin 1, 2 and 3 standard deviations of the mean:\n68%, 95% and 99.7% of the probability."
  }
 ]
