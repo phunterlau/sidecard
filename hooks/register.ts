@@ -207,10 +207,12 @@ export const register: Register = (on) => {
     await discover($)
     await loadHistory($)
     for (const c of cats) {
-      const b = (await $.store.get('buf:' + c.name)) as { sig?: string; cards?: Card[] } | undefined
-      if (b?.sig === sigOf(c) && Array.isArray(b.cards)) bufs.set(c.name, b.cards)
       const sn = await $.store.get('seen:' + c.name)
       if (Array.isArray(sn)) seen.set(c.name, sn as string[])
+      const b = (await $.store.get('buf:' + c.name)) as { sig?: string; cards?: Card[] } | undefined
+      // The saved buffer is not trimmed as cards are shown, so skip the ones already seen
+      if (b?.sig === sigOf(c) && Array.isArray(b.cards))
+        bufs.set(c.name, b.cards.filter((x) => !seen.get(c.name)?.includes(x.id)))
     }
     if (!timerOn) {
       timerOn = true

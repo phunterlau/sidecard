@@ -60,3 +60,19 @@ test('/sidecard review with no history says there are no cards yet', async ($, o
   mock.env(on, { HOME: '/nonexistent' })
   expect(await review($, 'review')).toContain('No cards yet')
 })
+
+test('a saved buffer skips cards already shown in an earlier session', async ($, on) => {
+  const card = (id: string) => ({ id, category: 'llm', body: id })
+  mock.store(on, {
+    'buf:llm': { sig: JSON.stringify({ depth: 'intermediate' }), cards: [card('a'), card('b')] },
+    'seen:llm': ['a'],
+  })
+  mock.env(on, { HOME: '/nonexistent' })
+  mock.clock(on)
+  on('fs.list', async () => ({ value: [{ name: 'llm.md', kind: 'file' }] }))
+  on('fs.read', async () => ({ value: '---\nname: llm\ninput.depth: intermediate | beginner, intermediate\n---\nTeach LLMs.' }))
+  on('command.register', async ($, e) => ({ value: { command: e.name } }))
+  on('session.start', async ($, e) => ({ cwd: e.cwd }))
+  await $.session.start({ cwd: '/', surface: 'terminal', isInteractive: true })
+  expect(await review($, 'status')).toContain('llm 1')
+})
